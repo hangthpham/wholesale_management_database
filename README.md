@@ -1,1 +1,2 @@
-# DatabaseProject
+**Wholesale_management_database**
+DESCRIPTION
