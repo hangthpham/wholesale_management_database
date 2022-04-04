@@ -1,3 +1,5 @@
+-- Using created procedures to insert new data
+
 call new_emp(null,'Jennifer','Simpson',9799328747,'salesrep@gmail.com','sales rep','Sales',null,60000,'12854 Caroline blvd','Atlanta','GA',30024,'2021-07-15');
 call new_emp(null,'Vu','Truong',8609328747,'director@gmail.com','Marketing Director','marketing',null,110000,'19 BAC rd','Hartford','CT',06117,'2021-07-15');
 call new_emp(null,'Stephan','Johnsson',8325038873,'president@gmail.com','Director of Sourcing Department','Sourcing',null,120000,'11619 Hazen St','Houston','TX',77072,'2009-09-01');
