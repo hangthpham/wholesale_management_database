@@ -9,7 +9,7 @@ delimiter //
 
 -- ADD NEW PURCHASING ORDER
 CREATE PROCEDURE new_PO (PO_id int, sp_id int, Agent_id int, purchase_date timestamp,
-						status enum('processing','shipped','delivered','cancelled'),
+			status enum('processing','shipped','delivered','cancelled'),
                         p_id int, quantity int, Discount decimal(10,2),tax_including_duty decimal(10,2), 
                         supplier_credit_used decimal(10,2))
 BEGIN 
@@ -36,7 +36,7 @@ set ETA = date_add(purchase_date,interval @shipping_days day);
 START TRANSACTION;  
 -- Set shipping_date for same day shipped orders
 if status = 'shipped' then 
-		set shipping_date = date(purchase_date);
+	set shipping_date = date(purchase_date);
         else set shipping_date = null; 
         end if;
 
@@ -44,7 +44,7 @@ if status = 'shipped' or status = 'processing' then
 	update inventory 
 	set PO_IDs = trim(leading ',' from (concat(ifnull(PO_IDs,''),',',PO_ID))),
 	quantity_PO = quantity_PO + quantity
-    where product_id = p_id;
+    	where product_id = p_id;
 	end if; 
   
 insert into purchasing_order (PO_id, supplier_id, Agent_id, purchase_date, status,shipped_date,
@@ -86,11 +86,11 @@ if new.supplier_credit_used > available_credit then
 	end if; 
 -- check if any applied discount more than total order amount before tax
 if (new.total_before_tax + new.discount) < new.discount then
-    signal SQLSTATE '45000' set message_text = @message_text2;
+	signal SQLSTATE '45000' set message_text = @message_text2;
 	-- or any applied supplier credit more than total order amount 
-    elseif new.total < new.supplier_credit_used then
+   	elseif new.total < new.supplier_credit_used then
 	signal SQLSTATE '45000' set message_text = @message_text3;
-    end if;
+    	end if;
 end //
 
 -- Check if one specific item for the order already exists (duplicate order item for each order)
@@ -98,10 +98,9 @@ CREATE TRIGGER before_insert_POitems
 before insert on PO_details for each row
 BEGIN 
 -- check for duplicate order item
-if exists(select 1 from PO_details 
-			where (PO_id,product_id) = (new.PO_id, new.product_id)) then
+if exists(select 1 from PO_details where (PO_id,product_id) = (new.PO_id, new.product_id)) then
 	signal SQLSTATE '45000' set message_text = 'Insert failed due to duplicate item for this PO id';
-    end if;
+   	end if;
 end//
 
 -- Used to add additional items when the purchase order has more than 1 item 
@@ -158,7 +157,7 @@ if new.status = 'cancelled' then
 		on i.product_id = pod.product_id and pod.po_id = po.po_id
 		set i.PO_IDs = (case when length(left(i.PO_IDs,locate(new.po_id,i.PO_IDs)-1)) > 0 and locate(',',i.PO_IDs,locate(new.po_id,i.PO_IDs)) <> 0 
 					then replace(i.PO_IDs,remove_PO_ID,'') -- when new.PO_id is in middle of the string in PO_IDs column
-                    else trim(both ',' from (replace(i.PO_IDs,new.po_id,'')))end), 
+              			     else trim(both ',' from (replace(i.PO_IDs,new.po_id,'')))end), 
 		i.quantity_PO = i.quantity_PO - pod.quantity
 		where po.po_id = new.po_id;
 		update supplier s
@@ -195,13 +194,13 @@ set PO_status = (select distinct po.status from purchasing_order po join PO_deta
 
 if PO_status = 'shipped' or PO_status = 'delivered' then
 	signal SQLSTATE '45000' set message_text = 'This order is already shipped/delivered. You cannot change the PO items!';
-    elseif PO_status = 'processing' then 
-   update inventory i
-		join purchasing_order po join po_details pod 
-		on i.product_id = pod.product_id and pod.po_id = po.po_id
-		set i.quantity_PO = i.quantity_PO - old.quantity + new.quantity
-    where pod.PO_id = new.PO_id;
-    end if;
+    	elseif PO_status = 'processing' then 
+   	update inventory i
+	join purchasing_order po join po_details pod 
+	on i.product_id = pod.product_id and pod.po_id = po.po_id
+	set i.quantity_PO = i.quantity_PO - old.quantity + new.quantity
+    	where pod.PO_id = new.PO_id;
+    	end if;
 end //
 
 -- To make sure that the amount of supplier credit used for the purchase order is less than the supplier's available supplier credit (remaining credit limit)
@@ -209,6 +208,6 @@ CREATE TRIGGER before_update_supplier_credit
 before update on supplier for each row 
 begin
 	if new.remaining_credit_limit < 0 then
-    signal SQLSTATE '45000' set message_text = 'Insufficent supplier credits for this update. It would exceed the supplier_credit_limit';
-    end if;
+   	signal SQLSTATE '45000' set message_text = 'Insufficent supplier credits for this update. It would exceed the supplier_credit_limit';
+    	end if;
 end //
