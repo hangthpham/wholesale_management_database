@@ -62,8 +62,7 @@ if customer_credit_used > 0 and status != 'quote' then
     set c.used_credit = c.used_credit + customer_credit_used
     where c.customer_id = c_id;
 -- For customer_credit_used, update Accounts Receivable accordingly
-    insert into Accounts_receivable (customer_id, salesrep_id, order_id, order_date, 
-									customer_credit_used, customer_credit_term)
+    insert into Accounts_receivable (customer_id, salesrep_id, order_id, order_date, customer_credit_used, customer_credit_term)
 	values (c_id, sales_agent_id, order_id, order_date, customer_credit_used, credit_term);
     end if;
 Commit;
