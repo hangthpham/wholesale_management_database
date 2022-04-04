@@ -23,6 +23,7 @@ begin
 	signal SQLSTATE VALUE '45000' set message_text = 'Insert failed due to duplicate phone number or employee id';
 	end if;
 end//
+
 -- ADD NEW CUSTOMER
 CREATE PROCEDURE new_customer (IN customer_id int,
 									customer_name varchar(100), contact_name varchar(100),
@@ -51,6 +52,7 @@ begin
 	signal SQLSTATE VALUE '45000' set message_text = 'Insert failed due to duplicate phone number or customer id';
 	end if;
 end//
+
 -- ADD NEW SUPPLIER
 CREATE PROCEDURE new_supplier (IN supplier_id int,company_name varchar(100), contact_name varchar(100),
 								phone_number bigint, email varchar(100), status	enum('active','inactive'),
@@ -74,6 +76,7 @@ begin
 	signal SQLSTATE VALUE '45000' set message_text = 'Insert failed due to duplicate phone number or supplier id';
 	end if;
 end//
+
 -- ADD NEW PRODUCT / INVENTORY AT THE SAME TIME
 CREATE PROCEDURE new_product_inventory (IN product_id	int, product_name varchar(100), category varchar(50),
 							description	varchar(255),status	enum('continued','discontinued'), quantity int,
