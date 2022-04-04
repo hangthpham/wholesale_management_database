@@ -7,9 +7,10 @@ drop trigger if exists update_order_status;
 drop trigger if exists update_order_items;
 drop trigger if exists before_update_customer_credit;
 delimiter //
+
 -- ADD NEW ORDER
 CREATE PROCEDURE new_order (IN order_id int, c_id int, sales_agent_id int, order_date timestamp,
-							status enum('quote','processing','shipped/picked up'), 
+			    status enum('quote','processing','shipped/picked up'), 
                             p_id int, quantity int, Discount decimal(10,2),
                             instore_credit decimal(10,2), customer_credit_used decimal(10,2))
 BEGIN 
@@ -106,8 +107,8 @@ if (new.total_before_tax + new.discount) < new.discount then
     end if;
 end //
 
-/* Check if - one specific item for the order already exists (duplicate order item for each order)
-			- ordered quantity is more than available quantity in stock */
+/* Check if - ordered quantity is more than available quantity in stock 
+	    - one specific item for the order already exists (duplicate order item for each order) */
 CREATE TRIGGER ordered_quantity_check 
 before insert on orderdetails for each row
 BEGIN 
@@ -124,7 +125,7 @@ if exists(select 1 from orderdetails
     end if;
 end//
 
--- Used to add additional items when customer buy more than 1 item for their order
+-- To add additional items when customer buy more than 1 item for their order
 CREATE PROCEDURE Order_items (IN o_id int, p_id int, quantity int)
 BEGIN
 declare applied_sales_price	decimal(10,2);
@@ -151,7 +152,8 @@ if order_status = 'processing'
     where product_id = p_id;
     end if;
 end//
--- 
+
+-- Automatically update Inventory, Customer credits (in store and customer credit), Accounts receivable (if any) whenever the Order Status is updated 
 CREATE TRIGGER update_order_status 
 after update on Orders for each row 
 begin  
@@ -161,7 +163,7 @@ set credit_term = (select customer_credit_term from customer where customer_id =
 set updated_order_date = current_timestamp();
 
 if new.status = 'processing' and old.status = 'quote' then
-	update inventory i
+    update inventory i
     join orderdetails od join orders o 
     on i.product_id = od.product_id and o.order_id = od.order_id
     set i.reserved = i.reserved + od.quantity 
@@ -172,10 +174,8 @@ if new.status = 'processing' and old.status = 'quote' then
     c.instore_credit = c.instore_credit - o.instore_credit
     where o.order_id = new.order_id;
 	if new.customer_credit_used > 0 then
-		insert into accounts_receivable (Order_ID, customer_id, salesrep_id,order_date,
-									customer_credit_used,customer_credit_term)
-		values (new.order_id,new.customer_id,new.sales_agent_id,updated_order_date,
-			new.customer_credit_used, credit_term);
+		insert into accounts_receivable (Order_ID, customer_id, salesrep_id,order_date, customer_credit_used,customer_credit_term)
+		values (new.order_id,new.customer_id,new.sales_agent_id,updated_order_date, new.customer_credit_used, credit_term);
 		end if;
         
     elseif new.status = 'shipped/picked up' and old.status = 'processing' then
@@ -190,7 +190,7 @@ if new.status = 'processing' and old.status = 'quote' then
         end if;
     
     elseif new.status = 'cancelled' and old.status = 'processing' then
-	update inventory i
+    update inventory i
     join orderdetails od join orders o 
     on i.product_id = od.product_id and o.order_id = od.order_id
     set i.reserved = i.reserved - od.quantity
@@ -208,9 +208,10 @@ if new.status = 'processing' and old.status = 'quote' then
 	signal SQLSTATE '45000' set message_text = 'This order is already shipped/picked up. You cannot cancel it'; 
 	end if;
 end//
--- 
+
+-- Orders can only be updated and take effects when its status is 'processing'. Use trigger to enforce this condition.  
 CREATE TRIGGER update_order_items 
-after update on Orderdetails for each row 
+after update on OrderDetails for each row 
 begin
 declare order_status enum('quote','processing','shipped/picked up','cancelled');
 set order_status = (select distinct o.status from orders o join orderdetails od on o.order_id = od.order_id where o.order_id = new.order_id); 
@@ -225,7 +226,8 @@ if order_status = 'shipped/picked up' then
     where od.order_id = new.order_id;
     end if;
 end //
---
+
+-- To make sure that all types of credits used for the order will be less than the customer's available credits (in store credit and remaining credit limit)
 CREATE TRIGGER before_update_customer_credit
 before update on customer for each row 
 begin
