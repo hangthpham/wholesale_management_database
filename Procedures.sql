@@ -1,13 +1,9 @@
 delimiter //
 -- ADD NEW EMPLOYEE
-CREATE PROCEDURE new_emp (IN employee_id int,
-						first_name varchar(50), last_name varchar(50),
-						phone_number bigint, email varchar(100),
-						job_title varchar(50), department varchar(50),
-                        managerID int, salary int, 
-                        street_address varchar(255), city varchar(50), 
-                        state varchar(50), zip_code int(10),
-                        employment_date date)
+CREATE PROCEDURE new_emp (IN employee_id int,first_name varchar(50), last_name varchar(50),
+			phone_number bigint, email varchar(100),job_title varchar(50), department varchar(50),
+                        managerID int, salary int, street_address varchar(255), city varchar(50), 
+                        state varchar(50), zip_code int(10), employment_date date)
 begin 
 SET max_sp_recursion_depth=255;
 insert into employee 
@@ -25,22 +21,17 @@ begin
 end//
 
 -- ADD NEW CUSTOMER
-CREATE PROCEDURE new_customer (IN customer_id int,
-									customer_name varchar(100), contact_name varchar(100),
-                                    phone_number bigint, email varchar(100),
-                                    status enum('active','inactive'),
+CREATE PROCEDURE new_customer (IN customer_id int,customer_name varchar(100), contact_name varchar(100),
+                                    phone_number bigint, email varchar(100),status enum('active','inactive'),
                                     street_address varchar(255),city varchar(50),state varchar(50), zip_code int(10), 
                                     customer_credit_limit decimal(10,2), used_credit decimal(10,2),
-                                    customer_credit_term varchar(50), 
-                                    inStore_credit decimal(10,2),salesRep_id int)
+                                    customer_credit_term varchar(50),inStore_credit decimal(10,2),salesRep_id int)
 begin 
 insert into customer (customer_id, customer_name, contact_name, phone_number, email, status,
-		street_address,city,state, zip_code, 
-		customer_credit_limit, used_credit, 
+		street_address,city,state, zip_code, customer_credit_limit, used_credit, 
 		customer_credit_term, inStore_credit, salesRep_id)
 values (customer_id, customer_name, contact_name, phone_number, email, status,
-		street_address,city,state, zip_code, 
-		customer_credit_limit, used_credit, 
+		street_address,city,state, zip_code, customer_credit_limit, used_credit, 
 		customer_credit_term, inStore_credit, salesRep_id);
 end//
 -- Check for duplicate customer via customer_id or phone_number
@@ -55,7 +46,7 @@ end//
 
 -- ADD NEW SUPPLIER
 CREATE PROCEDURE new_supplier (IN supplier_id int,company_name varchar(100), contact_name varchar(100),
-								phone_number bigint, email varchar(100), status	enum('active','inactive'),
+				phone_number bigint, email varchar(100), status	enum('active','inactive'),
                                 street_address varchar(255), city varchar(50), state varchar(50),
                                 zip_code int, country varchar(50), shipping_days int, supplier_credit_limit decimal(10,2),
                                 used_credit	decimal(10,2), supplier_credit_term varchar(50), agent_id int)
@@ -79,13 +70,11 @@ end//
 
 -- ADD NEW PRODUCT / INVENTORY AT THE SAME TIME
 CREATE PROCEDURE new_product_inventory (IN product_id	int, product_name varchar(100), category varchar(50),
-							description	varchar(255),status	enum('continued','discontinued'), quantity int,
-                            purchase_price decimal(10,2), sales_price decimal(10,2), supplier_id int)
+					description varchar(255),status	enum('continued','discontinued'), quantity int,
+                            		purchase_price decimal(10,2), sales_price decimal(10,2), supplier_id int)
 BEGIN 
-Insert into Product (product_id, product_name, category,description,
-					status, purchase_price, sales_price, supplier_id)
-	values (product_id, product_name, category,description,
-					status, purchase_price, sales_price, supplier_id);
+Insert into Product (product_id, product_name, category,description, status, purchase_price, sales_price, supplier_id)
+	values (product_id, product_name, category,description, status, purchase_price, sales_price, supplier_id);
 -- Update Inventory table
 Insert into Inventory (product_id, product_name, total_quantity, supplier_id) 
 	values (product_id, product_name, quantity, supplier_id);
