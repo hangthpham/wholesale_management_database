@@ -25,7 +25,6 @@ end//
 CREATE TRIGGER Paid_AR 
 before update on accounts_receivable for each row
 begin 
-
 if new.payment_date is not null and new.check_no is null then
     	signal SQLSTATE '45000' set message_text = 'If the account receivable is resolved, check_no column is required.';
     	elseif new.payment_date is null and new.check_no is not null then
