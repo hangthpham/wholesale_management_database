@@ -1,4 +1,4 @@
--- Using created procedures to insert new data
+-- INSERT NEW DATA USING CREATED PROCEDURES 
 
 call new_emp(null,'Jennifer','Simpson',9799328747,'salesrep@gmail.com','sales rep','Sales',null,60000,'12854 Caroline blvd','Atlanta','GA',30024,'2021-07-15');
 call new_emp(null,'Vu','Truong',8609328747,'director@gmail.com','Marketing Director','marketing',null,110000,'19 BAC rd','Hartford','CT',06117,'2021-07-15');
