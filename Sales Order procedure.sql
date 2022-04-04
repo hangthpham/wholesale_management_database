@@ -58,7 +58,7 @@ if instore_credit > 0 and status != 'quote' then
 	where c.customer_id = c_id;
     end if;
 if customer_credit_used > 0 and status != 'quote' then
-	update customer c
+    update customer c
     set c.used_credit = c.used_credit + customer_credit_used
     where c.customer_id = c_id;
 -- For customer_credit_used, update Accounts Receivable accordingly
@@ -83,10 +83,9 @@ set @message_text4 = concat('Applied in-store credit must not exceed total amoun
 set @message_text5 = concat('Applied customer credits must not exceed total amount - ',new.total); 
 
 -- Check for duplicate order using order id
-	if (exists (select 1 from Orders 
-    where order_id = new.order_id)) then
+if (exists (select 1 from Orders where order_id = new.order_id)) then
 	signal SQLSTATE VALUE '45000' set message_text = 'Insert failed due to duplicate order id';
-    end if;
+	end if;
 -- Check if any applied credits are more than available credits
 if new.instore_credit > available_instore_credit then
 	signal SQLSTATE Value '45000' set message_text = @message_text1;
@@ -96,7 +95,7 @@ if new.customer_credit_used > available_credit then
 	end if; 
 -- check if any applied discount more than total order amount before tax
 if (new.total_before_tax + new.discount) < new.discount then
-    signal SQLSTATE '45000' set message_text = @message_text3;
+    	signal SQLSTATE '45000' set message_text = @message_text3;
 	-- or any applied in-store credit more than total order amount
     elseif (new.total_before_tax + new.tax) < new.inStore_credit then
 	signal SQLSTATE '45000' set message_text = @message_text4;
@@ -116,12 +115,11 @@ set available_quantity = (select available from inventory where product_id = new
 set @message_text1 = concat('Ordered quantity must not exceed available quantity in stock - ', available_quantity);
 if new.quantity > available_quantity then
 	signal SQLSTATE value '45000' set message_text = @message_text1; 
-    end if;
+    	end if;
 -- check for duplicate order item
-if exists(select 1 from orderdetails 
-			where (order_id,product_id) = (new.order_id, new.product_id)) then
+if exists(select 1 from orderdetails where (order_id,product_id) = (new.order_id, new.product_id)) then
 	signal SQLSTATE '45000' set message_text = 'Insert failed due to duplicate item for this order id';
-    end if;
+    	end if;
 end//
 
 -- To add additional items when customer buy more than 1 item for their order
@@ -146,10 +144,10 @@ if order_status = 'processing'
 	set reserved = reserved + quantity
 	where product_id = p_id;
 	elseif order_status = 'shipped/picked up'
-    then update inventory 
-    set total_quantity = total_quantity - quantity
-    where product_id = p_id;
-    end if;
+    	then update inventory 
+    	set total_quantity = total_quantity - quantity
+    	where product_id = p_id;
+    	end if;
 end//
 
 -- Automatically update Inventory, Customer credits (in store and customer credit), Accounts receivable (if any) whenever the Order Status is updated 
@@ -184,9 +182,9 @@ if new.status = 'processing' and old.status = 'quote' then
     set i.reserved = i.reserved - od.quantity,
     i.total_quantity = i.total_quantity - od.quantity
     where od.order_id = new.order_id;
-    if new.shipped_date is null then 
+    	if new.shipped_date is null then 
 		signal SQLSTATE '45000' set message_text = 'Shipped_date cannot be null. Please insert shipped_date.';
-        end if;
+        	end if;
     
     elseif new.status = 'cancelled' and old.status = 'processing' then
     update inventory i
@@ -222,7 +220,7 @@ if order_status = 'shipped/picked up' then
     join orderdetails od join orders o 
     on i.product_id = od.product_id and o.order_id = od.order_id
     set i.reserved = i.reserved - old.quantity + new.quantity
-    where od.order_id = new.order_id;
+    where od.order_id = new.order_id and od.product_id = new.product_id;
     end if;
 end //
 
