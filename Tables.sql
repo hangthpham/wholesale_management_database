@@ -1,7 +1,8 @@
 drop database if exists wholesale_management_system;
 create database wholesale_management_system;
 use wholesale_management_system;
--- Create table Employee 
+
+-- EMPLOYEE TABLE 
 CREATE TABLE Employee (
 employee_id int auto_increment primary key,
 first_name varchar(50) not null,
@@ -21,7 +22,8 @@ constraint FK_emp_manager foreign key (managerid)
 	references employee (employee_id)
 	on update cascade on delete set null
 );
--- Create Supplier table
+
+-- SUPPLIER TABLE 
 CREATE TABLE Supplier ( 
 supplier_id int auto_increment primary key,
 company_name varchar(100) not null,
@@ -44,7 +46,8 @@ constraint FK_supplier_emp foreign key (agent_id)
 references employee (employee_id)
 on update cascade on delete set null
 );
--- Create table Customer
+
+-- CUSTOMER TABLE
 CREATE TABLE Customer (
 customer_id int auto_increment primary key,
 customer_name varchar(100) not null,
@@ -66,7 +69,8 @@ constraint FK_customer_emp foreign key (salesrep_id)
 references employee (employee_id)
 on update cascade on delete set null
 );
--- Create table Product
+
+-- PRODUCT TABLE
 CREATE TABLE Product (
 product_id int auto_increment primary key,
 product_name varchar(100) not null,
@@ -80,7 +84,8 @@ constraint FK_product_supplier foreign key (supplier_id)
 references supplier(supplier_id)
 on update cascade 
 );
--- Create table Inventory
+
+-- INVENTORY TABLE 
 CREATE TABLE Inventory (
 Product_ID int auto_increment primary key,
 product_name varchar(100) not null,
@@ -99,7 +104,8 @@ constraint FK_Inv_supplier foreign key (supplier_id)
 references supplier(supplier_id)
 on update cascade 
 );
--- Create table Order
+
+--  ORDER TABLE
 CREATE TABLE Orders (
 Order_id int auto_increment primary key,
 customer_id int,
@@ -121,7 +127,8 @@ constraint FK_Orders_emp foreign key (sales_agent_id)
 references employee(employee_id)
 on update cascade on delete set null
 );
--- Create table OrderDetails
+
+-- ORDER DETAILS TABLE
 CREATE TABLE OrderDetails (
 Order_id int not null,
 product_id int not null,
@@ -135,7 +142,8 @@ constraint FK_OrderDetail_product foreign key (product_id)
 references product (product_id) 
 on update cascade
 );
--- Create table Purchasing_Order
+
+-- PURCHASING_ORDER TABLE
 CREATE TABLE Purchasing_order (
 PO_id int auto_increment primary key,
 supplier_id int,
@@ -158,7 +166,8 @@ constraint FK_PO_emp foreign key (agent_id)
 references employee(employee_id)
 on update cascade on delete set null
 );
--- Create table PO_details 
+
+-- PO_DETAILS TABLE 
 CREATE TABLE PO_details (
 PO_id int not null, 
 product_id int,
@@ -172,7 +181,8 @@ constraint FK_POD_product foreign key (product_id)
 references product (product_id)
 on update cascade on delete set null
 );
--- Create table accounts_payable
+
+-- ACCOUNTS_PAYABLE TABLE
 CREATE TABLE accounts_payable (
 PO_ID int primary key,
 supplier_id int not null,
@@ -184,7 +194,8 @@ due_date timestamp generated always as (timestampadd(day,supplier_credit_term,pu
 payment_date date,
 check_no varchar(50)
 ); 
--- Create table Accounts_receivable
+
+-- ACCOUNTS_RECEIVABLE TABLE 
 CREATE TABLE accounts_receivable (
 Order_ID int primary key,
 customer_id int not null,
