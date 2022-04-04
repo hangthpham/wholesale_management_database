@@ -5,6 +5,13 @@ I used to work for a company based in Atlanta, GA. This company is a wholesaler 
 To serve the purpose of reducing the human errors and simplifying the data entry process, triggers were utilized to ensure that all the inputs are valid and contributed meaningfully to the database. Whereas, procedures are optimized to minimize efforts and time by automated insert/update. With one procedure, all associated tables can be updated/inserted accordingly just by one step. 
 ## Methodology
 MySQL Workbench 8.0
-## Language
-MySQL
+## Table of Content
+* Tables: All tables in the database
+* Procedures: To add new employee, supplier, customer, product/inventory
+* Sales Order procedure: To add new order 
+* Purchasing Order procedure: To add new purchasing_order
+* Resolved accounts_check: To ensure accounts is resolved correctly
+* Sample data: Insert sample data using procedures
+* ERR Diagram
+* List of Procedures and Triggers
 
