@@ -84,7 +84,7 @@ set @message_text3 = concat('Applied supplier credits must not exceed total amou
 if new.supplier_credit_used > available_credit then
 	signal SQLSTATE '45000' set message_text = @message_text1;
 	end if; 
--- check if any applied discount more than total order amount before tax
+-- check if any applied discount is more than total order amount before tax
 if (new.total_before_tax + new.discount) < new.discount then
 	signal SQLSTATE '45000' set message_text = @message_text2;
 	-- or any applied supplier credit more than total order amount 
@@ -199,7 +199,7 @@ if PO_status = 'shipped' or PO_status = 'delivered' then
 	join purchasing_order po join po_details pod 
 	on i.product_id = pod.product_id and pod.po_id = po.po_id
 	set i.quantity_PO = i.quantity_PO - old.quantity + new.quantity
-    	where pod.PO_id = new.PO_id;
+    	where pod.PO_id = new.PO_id and pod.product_id = new.product_id;
     	end if;
 end //
 
