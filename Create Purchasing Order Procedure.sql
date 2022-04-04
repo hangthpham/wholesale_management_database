@@ -5,8 +5,8 @@ drop procedure if exists PO_items;
 drop trigger if exists update_PO_status ;
 drop trigger if exists update_PO_items ;
 drop trigger if exists  before_update_supplier_credit;
-
 delimiter //
+
 -- ADD NEW PURCHASING ORDER
 CREATE PROCEDURE new_PO (PO_id int, sp_id int, Agent_id int, purchase_date timestamp,
 						status enum('processing','shipped','delivered','cancelled'),
@@ -55,12 +55,11 @@ insert into PO_details (PO_id, product_id, quantity, purchase_price)
 	values (PO_id, p_id, quantity, applied_purchase_price);
 -- In case any supplier credit is used, reflect changes in supplier_credit_used from Supplier table
 if supplier_credit_used > 0 then
-	update supplier s
+    update supplier s
     set s.used_credit = s.used_credit + supplier_credit_used
     where s.supplier_id = sp_id;
 -- For supplier_credit_used, update Accounts Payable accordingly
-    insert into Accounts_payable (supplier_id, agent_id, PO_id, purchase_date, 
-									supplier_credit_used, supplier_credit_term)
+    insert into Accounts_payable (supplier_id, agent_id, PO_id, purchase_date, supplier_credit_used, supplier_credit_term)
 	values (sp_id, agent_id, PO_id, purchase_date, supplier_credit_used, credit_term);
     end if;
 Commit;
@@ -105,7 +104,7 @@ if exists(select 1 from PO_details
     end if;
 end//
 
--- Used to add additional items when customer buy more than 1 item for their order
+-- Used to add additional items when the purchase order has more than 1 item 
 CREATE PROCEDURE PO_items (IN po_id int, p_id int, quantity int)
 BEGIN
 declare applied_purchase_price	decimal(10,2);
@@ -126,12 +125,13 @@ if PO_status = 'processing' then
 	update inventory 
 	set PO_IDs = trim(leading ',' from (concat(ifnull(PO_IDs,''),',',PO_ID))),
 	quantity_PO = quantity_PO + quantity
-    where product_id = p_id;
+    	where product_id = p_id;
 	elseif PO_status = 'shipped' or PO_status = 'delivered' then
-    signal SQLSTATE '45000' set message_text = 'This PO is already shipped or delivered. You cannot add new items into this order.';
-    end if;
+    	signal SQLSTATE '45000' set message_text = 'This PO is already shipped or delivered. You cannot add new items into this order.';
+    	end if;
 end//
--- 
+
+-- Automatically update Inventory, Supplier credit and Accounts payable (if any) whenever the PO status is changed
 CREATE TRIGGER update_PO_status 
 before update on purchasing_order for each row 
 begin  
@@ -146,11 +146,12 @@ set remove_PO_id = concat(new.po_id,',');
 if new.status = 'shipped' and new.shipped_date is null then
 	signal SQLSTATE '45000' set message_text = 'Shipped_date cannot be null. Please insert shipped_date.';
 	end if;
+-- when PO status is changed to 'cancelled'
 if new.status = 'cancelled' then
 	if old.status = 'shipped' or old.status = 'delivered' then
 		signal SQLSTATE '45000' set message_text = 'This PO is already shipped/delivered. You cannot cancel it';
 		end if;
-    if old.status = 'processing' then 
+	if old.status = 'processing' then 
 		set new.estimate_arrival_time = null;
 		update inventory i
 		join purchasing_order po join po_details pod 
@@ -168,22 +169,24 @@ if new.status = 'cancelled' then
 		from accounts_payable AP join purchasing_order po on ap.po_id = po.po_id
 		where po.po_id = new.po_id;
 		end if;
+-- when PO status is changed to 'delivered'		
 	elseif new.status = 'delivered' then
 	update inventory i
-    join purchasing_order po join po_details pod 
-    on i.product_id = pod.product_id and pod.po_id = po.po_id
-    set i.PO_IDs = (case when length(left(i.PO_IDs,locate(new.po_id,i.PO_IDs)-1)) > 0 and locate(',',i.PO_IDs,locate(new.po_id,i.PO_IDs)) != 0 
+    	join purchasing_order po join po_details pod 
+    	on i.product_id = pod.product_id and pod.po_id = po.po_id
+    	set i.PO_IDs = (case when length(left(i.PO_IDs,locate(new.po_id,i.PO_IDs)-1)) > 0 and locate(',',i.PO_IDs,locate(new.po_id,i.PO_IDs)) != 0 
 					then replace(i.PO_IDs,remove_PO_ID,'') -- when new.PO_id is in middle of the string in PO_IDs column
-                    else trim(both ',' from (replace(i.PO_IDs,new.po_id,'')))end), 
-    i.quantity_PO = i.quantity_PO - pod.quantity,
-    i.total_quantity = i.total_quantity + pod.quantity
-    where po.po_id = new.po_id;
-    if new.received_date is null then 
-    signal SQLSTATE '45000' set message_text = 'If the shipment is delivered, its received date is required. Please insert received date.';
-    end if;
-    end if;
+        		            else trim(both ',' from (replace(i.PO_IDs,new.po_id,'')))end), 
+    	i.quantity_PO = i.quantity_PO - pod.quantity,
+    	i.total_quantity = i.total_quantity + pod.quantity
+    	where po.po_id = new.po_id;
+    	if new.received_date is null then 
+    		signal SQLSTATE '45000' set message_text = 'If the shipment is delivered, its received date is required. Please insert received date.';
+    		end if;
+    	end if;
 end//
--- 
+
+-- The PO can only be updated and take effects when the PO status is 'processing'. Use trigger to enforce this condition
 CREATE TRIGGER update_PO_items 
 before update on PO_details for each row 
 begin
@@ -200,7 +203,8 @@ if PO_status = 'shipped' or PO_status = 'delivered' then
     where pod.PO_id = new.PO_id;
     end if;
 end //
---
+
+-- To make sure that the amount of supplier credit used for the purchase order is less than the supplier's available supplier credit (remaining credit limit)
 CREATE TRIGGER before_update_supplier_credit
 before update on supplier for each row 
 begin
