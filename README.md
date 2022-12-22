@@ -12,12 +12,13 @@ The idea to make this goal achievable is to use Triggers and Stored Procedures. 
 MySQL Workbench 8.0
 
 ## Table of Content
+* ERR Diagram
 * Tables: All tables in the database
+* List of Procedures and Triggers
 * Procedures: To add new employee, supplier, customer, product/inventory
 * Sales Order procedure: To add new order 
 * Purchasing Order procedure: To add new purchasing_order
 * Resolved accounts_check: To ensure accounts is resolved correctly
 * Sample data: Insert sample data using procedures
-* ERR Diagram
-* List of Procedures and Triggers
+
 
